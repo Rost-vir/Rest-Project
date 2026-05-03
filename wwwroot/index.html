@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Auction System</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f4f7fb; }
+
+header {
+    background: #1e3a8a;
+    color: white;
+    padding: 13px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+header h1 { font-size: 20px; letter-spacing: 0.5px; }
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+.role-group {
+    display: none;
+    align-items: center;
+    gap: 6px;
+}
+.role-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: all 0.15s;
+    opacity: 0.6;
+}
+.role-btn.active { opacity: 1; }
+#btnOwner       { background: #ef4444; color: white; }
+#btnParticipant { background: #22c55e; color: white; }
+
+.btn-login {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.5);
+    background: transparent;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-login:hover { background: rgba(255,255,255,0.15); }
+
+.user-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+.user-badge span { opacity: 0.9; }
+.btn-logout {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.25); }
+
+.session-bar {
+    display: none;
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 6px 28px;
+    font-size: 13px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+}
+.overlay.open { display: flex; }
+.modal {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    position: relative;
+    animation: pop 0.18s ease;
+}
+@keyframes pop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-close {
+    position: absolute; top: 14px; right: 18px;
+    background: none; border: none;
+    font-size: 22px; cursor: pointer; color: #999;
+    line-height: 1;
+}
+.modal-close:hover { color: #333; }
+.modal h2 { margin-bottom: 20px; color: #1e3a8a; font-size: 20px; }
+
+.modal-tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
+.modal-tab {
+    flex: 1; padding: 10px; border: none; background: none;
+    cursor: pointer; font-size: 14px; color: #888;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    font-weight: bold;
+}
+.modal-tab.active { color: #1e3a8a; border-bottom-color: #1e3a8a; }
+.modal-panel { display: none; }
+.modal-panel.active { display: block; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; }
+.form-group input {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid #cbd5e1; border-radius: 8px;
+    font-size: 14px; transition: border-color 0.15s;
+}
+.form-group input:focus { outline: none; border-color: #2563eb; }
+
+.btn {
+    padding: 10px 20px;
+    border: none; border-radius: 8px;
+    cursor: pointer; font-size: 14px; font-weight: bold;
+    transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.88; }
+.btn-blue  { background: #2563eb; color: white; }
+.btn-green { background: #16a34a; color: white; }
+.btn-red   { background: #ef4444; color: white; }
+.btn-gray  { background: #e2e8f0; color: #333; }
+.btn-sm    { padding: 7px 14px; font-size: 13px; }
+.btn-full  { width: 100%; }
+
+.msg {
+    padding: 10px 14px; border-radius: 8px;
+    margin-bottom: 14px; font-size: 13px; display: none;
+}
+.msg-ok  { background: #dcfce7; color: #15803d; }
+.msg-err { background: #fee2e2; color: #b91c1c; }
+
+.container { max-width: 960px; margin: auto; padding: 24px 16px; }
+
+.toolbar {
+    display: flex; gap: 10px;
+    margin-bottom: 20px; flex-wrap: wrap; align-items: center;
+}
+.toolbar select {
+    padding: 8px 12px; border-radius: 8px;
+    border: 1px solid #cbd5e1; font-size: 14px; background: white;
+}
+
+.create-box {
+    background: white; border-radius: 14px;
+    padding: 24px; box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    max-width: 500px; margin-bottom: 24px; display: none;
+}
+.create-box h2 { margin-bottom: 18px; color: #1e3a8a; }
+
+.auction-card {
+    background: white; border-radius: 14px;
+    padding: 20px; margin-bottom: 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+    display: flex; gap: 16px; align-items: flex-start;
+}
+.card-body { flex: 1; }
+.card-title { font-size: 19px; font-weight: bold; color: #1e293b; }
+.card-desc  { color: #666; font-size: 14px; margin: 4px 0 8px; }
+.card-meta  { font-size: 13px; color: #888; }
+.card-actions {
+    display: flex; gap: 8px;
+    margin-top: 12px; flex-wrap: wrap; align-items: center;
+}
+.bid-input {
+    width: 130px; padding: 8px 10px;
+    border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;
+}
+
+.price-badge {
+    width: 88px; height: 88px; border-radius: 50%;
+    background: #16a34a; color: white;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    font-weight: bold; font-size: 17px; flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.price-badge small { font-size: 11px; opacity: 0.9; }
+
+.status { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+.status-Active    { background: #dcfce7; color: #16a34a; }
+.status-Ended     { background: #fee2e2; color: #dc2626; }
+.status-Cancelled { background: #f1f5f9; color: #64748b; }
+
+.empty { text-align: center; color: #aaa; padding: 40px; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Auction System</h1>
+
+    <div class="header-right">
+
+        <div class="user-badge" id="userBadge">
+            <span id="headerName"></span>
+            <button class="btn-logout" onclick="logout()">Log out</button>
+        </div>
+
+        <button class="btn-login" id="btnOpenLogin" onclick="openModal('login')">
+            Log in / Register
+        </button>
+
+        <div class="role-group" id="roleGroup">
+            <span style="font-size:12px; opacity:0.7;">Current:</span>
+            <button class="role-btn active" id="btnOwner"       onclick="setRole('owner')">Admin</button>
+            <button class="role-btn"        id="btnParticipant" onclick="setRole('participant')">Participant</button>
+        </div>
+
+    </div>
+</header>
+
+
+
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+
+        <div class="modal-tabs">
+            <button class="modal-tab active" id="tabLogin"    onclick="switchTab('login')">Log in</button>
+            <button class="modal-tab"        id="tabRegister" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <div class="modal-panel active" id="panelLogin">
+            <div class="form-group">
+                <label>Username</label>
+                <input id="loginUsername" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input id="loginPassword" autocomplete="current-password">
+            </div>
+            <button class="btn btn-blue btn-full" onclick="doLogin()">Log in</button>
+</div>
+
+        <div class="modal-panel" id="panelRegister">
+            <div class="form-group"><label>Username</label><input id="regUsername"></div>
+            <div class="form-group"><label>Email</label><input id="regEmail" type="email"></div>
+            <div class="form-group"><label>Password</label><input id="regPassword"></div>
+            <div class="form-group"><label>First name <span style="color:#aaa">(optional)</span></label><input id="regFirst"></div>
+            <div class="form-group"><label>Last name <span style="color:#aaa">(optional)</span></label><input id="regLast"></div>
+            <button class="btn btn-green btn-full" onclick="doRegister()">Register & Log in</button>
+</div>
+    </div>
+</div>
+
+<div class="container">
+
+    <div id="msgGlobal" class="msg" style="margin-bottom:16px;"></div>
+
+    <div class="toolbar">
+        <button class="btn btn-blue btn-sm" onclick="loadAuctions()">Refresh</button>
+
+        <select id="filterStatus" onchange="loadAuctions()">
+            <option value="">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Ended">Ended</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+
+        <select id="sortBy" onchange="loadAuctions()">
+            <option value="id">ID sort</option>
+            <option value="currentprice">Price ↑</option>
+            <option value="currentprice_desc">Price ↓</option>
+            <option value="enddate">End date ↑</option>
+            <option value="enddate_desc">End date ↓</option>
+            <option value="name">Name A–Z</option>
+        </select>
+
+        <button class="btn btn-green btn-sm" id="btnCreate"
+                style="display:none" onclick="toggleCreate()">
+            Create Auction
+        </button>
+    </div>
+
+    <div class="create-box" id="createBox">
+        <h2>New Auction</h2>
+        <div id="msgCreate" class="msg"></div>
+        <div class="form-group"><label>Title</label><input id="cName"></div>
+        <div class="form-group"><label>Description</label><input id="cDesc"></div>
+        <div class="form-group"><label>Category</label><input id="cCat"></div>
+        <div class="form-group"><label>Starting price (PLN)</label><input id="cPrice" type="number" min="0.01" step="0.01"></div>
+        <div class="form-group"><label>End date</label><input id="cEnd" type="datetime-local"></div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-blue" onclick="createAuction()">Create</button>
+            <button class="btn btn-gray" onclick="toggleCreate()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="auctionList"></div>
+
+</div>
+
+<script>
+const API = "http://localhost:5000";
+
+let jwtToken = null;
+let userId   = null;
+let username = "";
+let role     = "participant"; 
+
+function openModal(tab) {
+    switchTab(tab ?? "login");
+    document.getElementById("overlay").classList.add("open");
+}
+function closeModal() {
+    document.getElementById("overlay").classList.remove("open");
+}
+function overlayClick(e) {
+    if (e.target === document.getElementById("overlay")) closeModal();
+}
+function switchTab(tab) {
+    ["login","register"].forEach(t => {
+        document.getElementById("tab"   + cap(t)).classList.toggle("active", t === tab);
+        document.getElementById("panel" + cap(t)).classList.toggle("active", t === tab);
+    });
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+async function doLogin() {
+    const body = {
+        username: val("loginUsername"),
+        password: val("loginPassword")
+    };
+    if (!body.username || !body.password)
+        return msg("msgLogin", "Please fill username and password.", false);
+
+    const res  = await api("POST", "/api/auth/login", body, false);
+    const data = await res.json();
+    if (!res.ok) return msg("msgLogin", data.message ?? "Login failed.", false);
+
+    applySession(data);
+    closeModal();
+}
+
+async function doRegister() {
+    const body = {
+        username:  val("regUsername"),
+        email:     val("regEmail"),
+        password:  val("regPassword"),
+        firstName: val("regFirst"),
+        lastName:  val("regLast")
+    };
+    if (!body.username || !body.email || !body.password)
+        return msg("msgRegister", "Username, email and password are required.", false);
+
+    const res  = await api("POST", "/api/auth/register", body, false);
+    const data = await res.json();
+    if (!res.ok) return msg("msgRegister", data.message ?? "Registration failed.", false);
+
+    applySession(data);
+    closeModal();
+}
+
+function applySession(data) {
+    jwtToken = data.token;
+    userId   = data.userId;
+    username = data.username;
+
+    document.getElementById("btnOpenLogin").style.display = "none";
+    document.getElementById("userBadge").style.display    = "flex";
+    document.getElementById("headerName").textContent     = username;
+    document.getElementById("roleGroup").style.display    = "flex";
+
+    setRole("participant");
+    loadAuctions();
+}
+
+function logout() {
+    jwtToken = null; userId = null; username = ""; role = "participant";
+
+    document.getElementById("btnOpenLogin").style.display = "inline-block";
+    document.getElementById("userBadge").style.display    = "none";
+    document.getElementById("headerName").textContent     = "";
+    document.getElementById("roleGroup").style.display    = "none";
+    document.getElementById("btnCreate").style.display    = "none";
+    document.getElementById("createBox").style.display    = "none";
+
+    document.getElementById("btnOwner").classList.remove("active");
+    document.getElementById("btnParticipant").classList.add("active");
+
+    loadAuctions();
+}
+
+function setRole(r) {
+    role = r;
+    document.getElementById("btnOwner").classList.toggle("active",       r === "owner");
+    document.getElementById("btnParticipant").classList.toggle("active", r === "participant");
+    document.getElementById("btnCreate").style.display =
+        (r === "owner" && jwtToken) ? "inline-block" : "none";
+    if (r !== "owner") document.getElementById("createBox").style.display = "none";
+    loadAuctions();
+}
+
+function toggleCreate() {
+    const box = document.getElementById("createBox");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+}
+
+async function loadAuctions() {
+    const status  = val("filterStatus");
+    const sortRaw = val("sortBy");
+    let sortBy = "", order = "asc";
+    if (sortRaw.endsWith("_desc")) { sortBy = sortRaw.replace("_desc",""); order = "desc"; }
+    else if (sortRaw) sortBy = sortRaw;
+
+    let url = "/api/auctions?pageSize=50";
+    if (status) url += `&status=${status}`;
+    if (sortBy) url += `&sortBy=${sortBy}&order=${order}`;
+
+    const res  = await api("GET", url, null, false);
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.data ?? data.$values ?? []);
+
+    const container = document.getElementById("auctionList");
+    container.innerHTML = "";
+
+    if (!list.length) {
+        container.innerHTML = '<div class="empty">No auctions found.</div>';
+        return;
+    }
+
+    list.forEach(a => {
+        const price  = +(a.currentPrice ?? a.startingPrice ?? 0);
+        const isMyAuction = userId === a.ownerId;
+        const canBid = jwtToken && role === "participant"
+                       && a.status === "Active" && !isMyAuction;
+        const canDelete = jwtToken && role === "owner" && isMyAuction;
+        const end = new Date(a.endDate).toLocaleString();
+
+        const card = document.createElement("div");
+        card.className = "auction-card";
+        card.innerHTML = `
+            <div class="card-body">
+                <div class="card-title">${esc(a.name)}</div>
+                <div class="card-desc">${esc(a.description ?? "")}</div>
+                <div class="card-meta">
+                    Category: <b>${esc(a.category ?? "—")}</b> &nbsp;·&nbsp;
+                    Owner: <b>${esc(a.ownerUsername ?? "")}</b> &nbsp;·&nbsp;
+                    Ends: <b>${end}</b> &nbsp;·&nbsp;
+                    Bids: <b>${a.bidCount ?? 0}</b>
+                    &nbsp;<span class="status status-${a.status}">${a.status}</span>
+                </div>
+                <div class="card-actions">
+                    ${canBid ? `
+                        <input class="bid-input" id="bid-${a.id}" type="number"
+                               min="${(price+0.01).toFixed(2)}" step="0.01">
+                        <button class="btn btn-green btn-sm" onclick="placeBid(${a.id},${price})">
+                            Place Bid
+                        </button>` : ""}
+                    ${canDelete ? `
+                        <button class="btn btn-red btn-sm" onclick="deleteAuction(${a.id})">
+                            Delete
+                        </button>` : ""}
+
+                </div>
+            </div>
+            <div class="price-badge">
+                ${price.toFixed(2)}
+                <small>PLN</small>
+            </div>`;
+        container.appendChild(card);
+    });
+}
+
+async function createAuction() {
+    if (!jwtToken) return msg("msgCreate", "You must be logged in.", false);
+    if (role !== "owner") return msg("msgCreate", "Switch to Owner role first.", false);
+
+    const endVal = val("cEnd");
+    const body = {
+        name:          val("cName"),
+        description:   val("cDesc"),
+        category:      val("cCat"),
+        startingPrice: parseFloat(val("cPrice")) || 0,
+        startDate:     new Date().toISOString(),
+        endDate:       endVal
+            ? new Date(endVal).toISOString()
+            : new Date(Date.now() + 86400000).toISOString(),
+        ownerId: userId
+    };
+
+    if (!body.name)          return msg("msgCreate", "Title is required.", false);
+    if (body.startingPrice <= 0) return msg("msgCreate", "Price must be > 0.", false);
+
+    const res = await api("POST", "/api/auctions", body);
+    if (!res.ok) {
+        const d = await res.json();
+        return msg("msgCreate", d.message ?? "Error.", false);
+    }
+
+    msg("msgCreate", "Auction created successfully!", true);
+    ["cName","cDesc","cCat","cPrice","cEnd"].forEach(id =>
+        document.getElementById(id).value = "");
+    loadAuctions();
+}
+
+async function placeBid(auctionId, currentPrice) {
+    if (!jwtToken) return gMsg("Please log in to place a bid.", false);
+
+    const input  = document.getElementById(`bid-${auctionId}`);
+    let   amount = parseFloat(input?.value);
+
+    if (!amount || amount <= currentPrice) {
+        amount = +(currentPrice + 1).toFixed(2);
+        if (input) input.value = amount;
+    }
+
+    const res = await api("POST", `/api/auctions/${auctionId}/bids`,
+        { amount, bidderId: userId });
+
+    if (!res.ok) {
+        const d = await res.json();
+        return gMsg(d.message ?? "Bid failed.", false);
+    }
+
+    gMsg(`Bid of ${amount.toFixed(2)} PLN placed successfully!`, true);
+    loadAuctions();
+}
+
+async function deleteAuction(id) {
+    if (!jwtToken) return;
+    const res = await api("DELETE", `/api/auctions/${id}`);
+    if (res.ok || res.status === 204) { gMsg("Auction deleted.", true); loadAuctions(); }
+    else { const d = await res.json(); gMsg(d.message ?? "Error.", false); }
+}
+function api(method, path, body = null, withAuth = true) {
+    const headers = { "Content-Type": "application/json" };
+    if (withAuth && jwtToken) headers["Authorization"] = "Bearer " + jwtToken;
+    return fetch(API + path, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined
+    });
+}
+
+function msg(id, text, ok) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent   = text;
+    el.className     = "msg " + (ok ? "msg-ok" : "msg-err");
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 5000);
+}
+function gMsg(text, ok) { msg("msgGlobal", text, ok); }
+
+function val(id) {
+    return (document.getElementById(id)?.value ?? "").trim();
+}
+
+function esc(s) {
+    return String(s)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+document.addEventListener("keydown", e => {
+    if (e.key === "Enter" && document.getElementById("overlay").classList.contains("open")) {
+        const activeTab = document.querySelector(".modal-tab.active")?.id;
+        if (activeTab === "tabLogin")    doLogin();
+        if (activeTab === "tabRegister") doRegister();
+    }
+});
+
+// init 
+loadAuctions();
+</script>
+</body>
+</html>

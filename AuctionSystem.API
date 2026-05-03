@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11626.88 stable
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuctionSystem.API", "AuctionSystem.API.csproj", "{5E823A94-38A4-F401-9E7D-C79176A6E828}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5E823A94-38A4-F401-9E7D-C79176A6E828}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E823A94-38A4-F401-9E7D-C79176A6E828}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E823A94-38A4-F401-9E7D-C79176A6E828}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E823A94-38A4-F401-9E7D-C79176A6E828}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8E05E560-E05C-4837-AE2E-FF1FA1BBF271}
+	EndGlobalSection
+EndGlobal
